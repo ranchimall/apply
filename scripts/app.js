@@ -581,6 +581,10 @@ window.smCompConfig = {
 }
 
 async function applyToTask(id) {
+    if (!floGlobals.isUserLoggedIn) {
+        location.hash = '#/sign_in'
+        return notify('You need to be logged in to apply to a task')
+    }
     const confirmation = await getConfirmation('Apply to task', { message: 'Are you sure you want to apply to this task?' })
     if (!confirmation) return
     // apply to task
@@ -680,16 +684,17 @@ async function deleteTask(id) {
 const render = {
     task(details = {}) {
         const { title, description, date, id, status, deadline, category } = details;
-        let actions = ''
+        let actions = '';
         if (floGlobals.isSubAdmin) {
             actions = html`
-                <button class="button button--outlined" onclick=${() => editTask(id)}>Edit</button>
-                <button class="button button--outlined" onclick=${() => deleteTask(id)}>Delete</button>
+            <button class="button button--outlined" onclick=${() => editTask(id)}>Edit</button>
+            <button class="button button--outlined" onclick=${() => deleteTask(id)}>Delete</button>
             `
         } else if (!floGlobals.isAdmin) {
-            // actions = html`
-            //     <button class=${`button ${applied ? '' : 'button--outlined'}`} data-task-id=${id} onclick=${() => applyToTask(id)} ?disabled=${applied}>${applied ? 'Applied' : 'Apply'}</button>
-            // `
+            const applied = floGlobals.applications.has(id)
+            actions = html`
+                <button class=${`button ${applied ? '' : 'button--outlined'}`} data-task-id=${id} onclick=${() => applyToTask(id)} ?disabled=${applied}>${applied ? 'Applied' : 'Apply'}</button>
+            `
         }
         return html`
             <li class="task-card" .dataset=${{ id }}>
@@ -1072,13 +1077,20 @@ window.addEventListener("load", () => {
                 }
                 promises.push(floCloudAPI.requestGeneralData('taskApplications'))
                 await Promise.all(promises)
+                const taskApplications = floDapps.getNextGeneralData('taskApplications', '0');
             } else if (floGlobals.isAdmin) {
 
             } else {
+                floGlobals.applications = new Set()
                 // fetch user's kyc requests
                 await floCloudAPI.requestGeneralData('taskApplications', {
                     senderID: [floGlobals.myFloID, floGlobals.myBtcID],
                 })
+                const taskApplications = floDapps.getNextGeneralData('taskApplications', '0');
+                for (const application in taskApplications) {
+                    const { message: { taskID } } = taskApplications[application];
+                    floGlobals.applications.add(taskID)
+                }
             }
             if (['#/landing', '#/sign_in', '#/sign_up'].includes(window.location.hash)) {
                 history.replaceState(null, null, '#/home')
@@ -1091,3 +1103,10 @@ window.addEventListener("load", () => {
         }
     }).catch(error => console.error(error))
 });
+
+
+// NOTE: Should we allow users to start working on a task without applying?
+// If yes, then we can allow users to send updates regarding the task.
+// handle task deadlines
+// should we allow users to apply for multiple tasks?
+// Add icons to the task categories
