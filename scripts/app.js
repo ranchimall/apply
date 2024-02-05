@@ -587,7 +587,7 @@ async function applyToTask(id) {
     floCloudAPI.sendGeneralData({ taskID: id }, 'taskApplications')
         .then(response => {
             notify('You have successfully applied to the task', 'success')
-            render.availableTasks('available_tasks');
+            render.availableTasks();
         }).catch(e => {
             notify('An error occurred while applying to the task', 'error')
         })
@@ -643,7 +643,7 @@ async function saveTask() {
     floCloudAPI.updateObjectData('rmInterns')
         .then(response => {
             notify('Task saved successfully', 'success')
-            render.availableTasks('available_tasks_list');
+            render.availableTasks();
         })
         .catch(e => {
             notify('An error occurred while saving the task', 'error')
@@ -674,7 +674,7 @@ async function deleteTask(id) {
             floGlobals.appObjects.rmInterns.tasks.splice(taskIndex, 0, cloneOfTaskToBeDeleted);
         }).finally(() => {
             closePopup()
-            render.availableTasks('available_tasks_list');
+            render.availableTasks();
         })
 }
 const render = {
@@ -706,7 +706,7 @@ const render = {
             </li>
         `
     },
-    availableTasks(target) {
+    availableTasks(target = 'available_tasks_list') {
         if (floGlobals.appObjects?.rmInterns?.tasks?.length === 0)
             return renderElem(getRef(target), html`<p>No tasks available</p>`)
         const tasksList = floGlobals.appObjects.rmInterns.tasks.map(render.task);
@@ -779,12 +779,14 @@ function renderLanding(state) {
                 </div>
                 <div class="flex flex-direction-column gap-1-5">
                     <h4>Available</h4>
-                    <ul id="available_tasks_list" class="grid"></ul>
+                    <ul id="available_tasks_list" class="grid">
+                        <sm-spinner></sm-spinner>
+                    </ul>
                 </div>
             </section>
         </article>
     `)
-    render.availableTasks('available_tasks_list')
+    render.availableTasks()
 }
 router.addRoute('', renderLanding)
 router.addRoute('landing', renderLanding)
@@ -892,9 +894,11 @@ router.addRoute('home', (state) => {
                         Add Task
                     </button>
                 </div>
-                <ul id="available_tasks_list" class="grid"></ul>
+                <ul id="available_tasks_list" class="grid">
+                    <sm-spinner></sm-spinner>
+                </ul>
             `)
-            render.availableTasks('available_tasks_list')
+            render.availableTasks()
         } else if (view === 'applications') {
             renderElem(getRef('sub_admin_view'), html`
                 <li class="flex align-center gap-1">
@@ -911,12 +915,14 @@ router.addRoute('home', (state) => {
                     <h2>Home</h2>
                     <div class="flex flex-direction-column gap-1-5">
                         <h4>Available</h4>
-                        <ul id="available_tasks_list" class="grid"></ul>
+                        <ul id="available_tasks_list" class="grid">
+                            <sm-spinner></sm-spinner>
+                        </ul>
                     </div>
                 </section>
             </article>
         `)
-        render.availableTasks('available_tasks_list')
+        render.availableTasks()
     }
 })
 
