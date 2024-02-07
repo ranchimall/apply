@@ -695,6 +695,7 @@ async function saveTask() {
         task.date = Date.now();
         floGlobals.appObjects.rmInterns.tasks.unshift(task)
     }
+    buttonLoader('task_popup__submit', true)
     floCloudAPI.updateObjectData('rmInterns')
         .then(response => {
             notify('Task saved successfully', 'success')
@@ -704,6 +705,7 @@ async function saveTask() {
             notify('An error occurred while saving the task', 'error')
             console.error(e)
         }).finally(() => {
+            buttonLoader('task_popup__submit', false)
             closePopup()
         })
 }
@@ -741,7 +743,7 @@ const render = {
                 actions = html`
                     <button class="button button--outlined" onclick=${() => editTask(id)}>Edit</button>
                     <button class="button button--outlined" onclick=${() => deleteTask(id)}>Delete</button>
-                    <a href=${`#/task?id=${id}`} class="button button--outlined margin-left-auto">${floGlobals.applications[id].size} applied</a>
+                    <a href=${`#/task?id=${id}`} class="button button--outlined margin-left-auto">${floGlobals.applications[id]?.size || 0} applied</a>
                 `
             } else if (!floGlobals.isAdmin) {
                 const applied = floGlobals.applications.has(id)
@@ -749,6 +751,9 @@ const render = {
                     <button class=${`button ${applied ? '' : 'button--outlined'}`} data-task-id=${id} onclick=${() => applyToTask(id)} ?disabled=${applied}>${applied ? 'Applied' : 'Apply'}</button>
                 `
             }
+        } else {
+            actions = html`<a href=${`#/sign_in`} class="button button--outlined margin-left-auto">Apply</a>`
+            floGlobals.applyingForTask = id;
         }
         return html`
             <li class="task-card" .dataset=${{ id }}>
@@ -788,8 +793,9 @@ const router = new Router({
         }
     }
 })
-const header = (page) => {
-    const isUserLoggedIn = page === 'loading' || floGlobals.isUserLoggedIn
+const header = () => {
+    const { page } = router.state
+    const isUserLoggedIn = page === 'loading' || floGlobals.isUserLoggedIn;
     return html`
         <header id="main_header" class="flex align-center gap-1">
             <a href="#/">
@@ -798,8 +804,8 @@ const header = (page) => {
             <theme-toggle class="margin-left-auto"></theme-toggle>
             ${isUserLoggedIn ? html`` : html`
                 <div class="flex gap-0-5">
-                    <a class="button button--outlined" href="#/sign_up">Get Started</a>
-                    <a class="button button--primary" href="#/sign_in">Sign in</a>
+                    ${page !== 'sign_up' ? html`<a class="button button--outlined" href="#/sign_up">Get Started</a>` : ''}
+                    ${page !== 'sign_in' ? html`<a class="button button--primary" href="#/sign_in">Sign in</a>` : ''}
                 </div>
             `}
         </header>
@@ -808,7 +814,7 @@ const header = (page) => {
 router.addRoute('loading', (state) => {
     renderElem(getRef('app_body'), html`
         <article id="loading">
-            ${header('loading')}
+            ${header()}
             <section class="grid justify-content-center">
                 <sm-spinner></sm-spinner>
                 <div class="grid gap-1 justify-items-center">
@@ -823,7 +829,7 @@ router.addRoute('landing', (state) => {
     const { page } = state;
     renderElem(getRef('app_body'), html`
         <article id="landing">
-            ${header(page)}
+            ${header()}
             <section class="flex flex-wrap">
                 <div>
                     <h1 class="grid">
@@ -951,21 +957,26 @@ function renderHome(state) {
         getRef('task_popup__title').textContent = 'Add Task';
         render.availableTasks()
     } else {
-        renderElem(getRef('app_body'), html`
-            <article id="home">
-                ${header()}
-                <section class="grid gap-1">
-                    <h2>Home</h2>
-                    <div class="flex flex-direction-column gap-1-5">
-                        <h4>Available</h4>
-                        <ul id="available_tasks_list" class="grid">
-                            <sm-spinner></sm-spinner>
-                        </ul>
-                    </div>
-                </section>
-            </article>
-        `)
-        render.availableTasks()
+        if (floGlobals.applyingForTask) {
+            applyToTask(floGlobals.applyingForTask)
+            floGlobals.applyingForTask = null;
+        } else {
+            renderElem(getRef('app_body'), html`
+                <article id="home">
+                    ${header()}
+                    <section class="grid gap-1">
+                        <h2>Home</h2>
+                        <div class="flex flex-direction-column gap-1-5">
+                            <h4>Available</h4>
+                            <ul id="available_tasks_list" class="grid">
+                                <sm-spinner></sm-spinner>
+                            </ul>
+                        </div>
+                    </section>
+                </article>
+            `)
+            render.availableTasks()
+        }
     }
 }
 
@@ -1215,3 +1226,4 @@ window.addEventListener("load", () => {
 // handle task deadlines
 // should we allow users to apply for multiple tasks?
 // Add icons to the task categories
+// handle applicants data securely (encrypted) and allow sub-admins to view them
