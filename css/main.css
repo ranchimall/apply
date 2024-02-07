@@ -846,6 +846,9 @@ ol {
 }
 
 @media screen and (max-width: 40rem) {
+  #landing section {
+    align-content: flex-start;
+  }
   #landing section > div:first-of-type {
     padding: 3rem 0;
   }

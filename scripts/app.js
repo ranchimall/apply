@@ -736,17 +736,19 @@ const render = {
     task(details = {}) {
         const { title, description, date, id, status, deadline, category } = details;
         let actions = '';
-        if (floGlobals.isSubAdmin) {
-            actions = html`
-            <button class="button button--outlined" onclick=${() => editTask(id)}>Edit</button>
-            <button class="button button--outlined" onclick=${() => deleteTask(id)}>Delete</button>
-            <a href=${`#/task?id=${id}`} class="button button--outlined margin-left-auto">${floGlobals.applications[id].size} applied</a>
-            `
-        } else if (!floGlobals.isAdmin) {
-            const applied = floGlobals.applications.has(id)
-            actions = html`
-                <button class=${`button ${applied ? '' : 'button--outlined'}`} data-task-id=${id} onclick=${() => applyToTask(id)} ?disabled=${applied}>${applied ? 'Applied' : 'Apply'}</button>
-            `
+        if (floGlobals.isUserLoggedIn) {
+            if (floGlobals.isSubAdmin) {
+                actions = html`
+                    <button class="button button--outlined" onclick=${() => editTask(id)}>Edit</button>
+                    <button class="button button--outlined" onclick=${() => deleteTask(id)}>Delete</button>
+                    <a href=${`#/task?id=${id}`} class="button button--outlined margin-left-auto">${floGlobals.applications[id].size} applied</a>
+                `
+            } else if (!floGlobals.isAdmin) {
+                const applied = floGlobals.applications.has(id)
+                actions = html`
+                    <button class=${`button ${applied ? '' : 'button--outlined'}`} data-task-id=${id} onclick=${() => applyToTask(id)} ?disabled=${applied}>${applied ? 'Applied' : 'Apply'}</button>
+                `
+            }
         }
         return html`
             <li class="task-card" .dataset=${{ id }}>
@@ -764,8 +766,8 @@ const render = {
         `
     },
     availableTasks(target = 'available_tasks_list') {
-        if (floGlobals.appObjects?.rmInterns?.tasks?.length === 0)
-            return renderElem(getRef(target), html`<p>No tasks available</p>`)
+        if ((floGlobals.appObjects?.rmInterns.tasks || []).length === 0)
+            return renderElem(getRef(target), html`<p>No tasks available</p>`);
         const tasksList = floGlobals.appObjects.rmInterns.tasks.map(render.task);
         renderElem(getRef(target), html`${tasksList}`)
     }
@@ -834,7 +836,7 @@ router.addRoute('landing', (state) => {
                     </h1>
                     <svg id="emblem" width="77" height="77" viewBox="0 0 77 77" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="38.4806" cy="29.7768" r="29.1831"/> <circle cx="38.4806" cy="47.2232" r="29.1831"/> <circle cx="47.2038" cy="38.5" r="29.1831" transform="rotate(90 47.2038 38.5)"/> <circle cx="29.7574" cy="38.5" r="29.1831" transform="rotate(90 29.7574 38.5)"/> </svg>
                 </div>
-                <div class="flex flex-direction-column gap-1-5">
+                <div class="flex flex-direction-column gap-1-5" style="min-width: 12rem">
                     <h4>Available</h4>
                     <ul id="available_tasks_list" class="grid">
                         <sm-spinner></sm-spinner>

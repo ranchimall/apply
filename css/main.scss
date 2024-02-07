@@ -801,7 +801,6 @@ ol {
     grid-template-rows: auto 1fr;
     height: 100%;
 
-
     section {
         height: 100%;
 
@@ -910,6 +909,8 @@ ol {
 @media screen and (max-width: 40rem) {
     #landing {
         section {
+            align-content: flex-start;
+
             &>div:first-of-type {
                 padding: 3rem 0;
             }
