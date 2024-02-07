@@ -576,8 +576,58 @@ window.smCompConfig = {
                         errorText: `Invalid private key. Please check and try again.`
                     }
             }
+        },
+        {
+            selector: '[type="email"]',
+            customValidation: (value, target) => {
+                if (value === '') {
+                    return {
+                        isValid: false,
+                        errorText: 'Please enter an email address'
+                    }
+                }
+                return {
+                    isValid: /\S+@\S+\.\S+/.test(value),
+                    errorText: `Invalid email address`
+                }
+            }
+        }, {
+            selector: '#profile__whatsapp_number',
+            customValidation: (value, target) => {
+                if (value.length < 10) return { isValid: false, errorText: 'Number must be at least 10 digits long' }
+                if (value.length > 13) return { isValid: false, errorText: 'Number must be at most 13 digits long' }
+                return { isValid: true }
+            }
         }
     ]
+}
+
+async function saveProfile() {
+    const name = getRef('profile__name').value.trim();
+    const email = getRef('profile__email').value.trim();
+    const college = getRef('profile__college').value.trim();
+    const course = getRef('profile__course').value.trim();
+    const whatsappNumber = getRef('profile__whatsapp_number').value.trim();
+    const stringifiedData = JSON.stringify({ name, email, college, course, whatsappNumber });
+    if (stringifiedData === floDapps.user.decipher(floGlobals.userProfile)) return notify('No changes detected', 'error')
+    const confirmation = await getConfirmation('Save details', {
+        message: 'Are you sure you want to save these details?',
+        confirmText: 'Save'
+    })
+    if (!confirmation) return;
+    const encryptedData = floDapps.user.encipher(stringifiedData);
+    buttonLoader('profile__save', true)
+    floCloudAPI.sendGeneralData({ encryptedData }, 'userProfile')
+        .then(response => {
+            notify('Profile saved successfully', 'success');
+            floGlobals.userProfile = encryptedData;
+        })
+        .catch(e => {
+            notify('An error occurred while saving the profile', 'error')
+            console.error(e)
+        }).finally(() => {
+            buttonLoader('profile__save', false)
+        })
 }
 
 async function applyToTask(id) {
@@ -591,6 +641,7 @@ async function applyToTask(id) {
     floCloudAPI.sendGeneralData({ taskID: id }, 'taskApplications')
         .then(response => {
             notify('You have successfully applied to the task', 'success')
+            floGlobals.applications.add(id)
             render.availableTasks();
         }).catch(e => {
             notify('An error occurred while applying to the task', 'error')
@@ -689,6 +740,7 @@ const render = {
             actions = html`
             <button class="button button--outlined" onclick=${() => editTask(id)}>Edit</button>
             <button class="button button--outlined" onclick=${() => deleteTask(id)}>Delete</button>
+            <a href=${`#/task?id=${id}`} class="button button--outlined margin-left-auto">${floGlobals.applications[id].size} applied</a>
             `
         } else if (!floGlobals.isAdmin) {
             const applied = floGlobals.applications.has(id)
@@ -765,7 +817,7 @@ router.addRoute('loading', (state) => {
         </article>
     `);
 })
-function renderLanding(state) {
+router.addRoute('landing', (state) => {
     const { page } = state;
     renderElem(getRef('app_body'), html`
         <article id="landing">
@@ -792,9 +844,7 @@ function renderLanding(state) {
         </article>
     `)
     render.availableTasks()
-}
-router.addRoute('', renderLanding)
-router.addRoute('landing', renderLanding)
+})
 
 function handleSignIn() {
     privKeyResolver(getRef('private_key_field').value.trim());
@@ -871,9 +921,11 @@ router.addRoute('sign_up', (state) => {
 function handleSubAdminViewChange(e) {
     location.hash = `#/home?view=${e.target.value}`
 }
+router.addRoute('', renderHome)
+router.addRoute('home', renderHome)
 
-router.addRoute('home', (state) => {
-    const { params: { view = 'tasks' } = {} } = state;
+function renderHome(state) {
+    const { } = state;
     if (floGlobals.isAdmin) {
 
     } else if (floGlobals.isSubAdmin) {
@@ -881,37 +933,21 @@ router.addRoute('home', (state) => {
             <article id="home">
                 ${header()}
                 <section class="grid gap-1">
-                    <sm-chips class="margin-right-auto" onchange=${handleSubAdminViewChange}>
-                        <sm-chip value="tasks" ?selected=${view === 'tasks'}>Tasks</sm-chip>
-                        <sm-chip value="applications" ?selected=${view === 'applications'}>Applications</sm-chip>
-                    </sm-chips>
-                    <ul id="sub_admin_view" class="grid gap-1"></ul>
+                    <div class="flex align-center space-between">
+                        <h5>Tasks</h5>
+                        <button class="button button--primary margin-left-auto gap-0-5" onclick=${() => openPopup('task_popup')}>
+                            <svg class="icon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                            Add Task
+                        </button>
+                    </div>
+                    <ul id="available_tasks_list" class="grid">
+                        <sm-spinner></sm-spinner>
+                    </ul>
                 </section>
             </article>
         `)
-        if (view === 'tasks') {
-            getRef('task_popup__title').textContent = 'Add Task';
-            renderElem(getRef('sub_admin_view'), html`
-                <div class="flex align-center space-between">
-                    <h5>Active</h5>
-                    <button class="button button--primary margin-left-auto gap-0-5" onclick=${() => openPopup('task_popup')}>
-                        <svg class="icon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                        Add Task
-                    </button>
-                </div>
-                <ul id="available_tasks_list" class="grid">
-                    <sm-spinner></sm-spinner>
-                </ul>
-            `)
-            render.availableTasks()
-        } else if (view === 'applications') {
-            renderElem(getRef('sub_admin_view'), html`
-                <li class="flex align-center gap-1">
-                    <h4>Applications</h4>
-                    <sm-spinner></sm-spinner>
-                </li>
-            `)
-        }
+        getRef('task_popup__title').textContent = 'Add Task';
+        render.availableTasks()
     } else {
         renderElem(getRef('app_body'), html`
             <article id="home">
@@ -929,21 +965,74 @@ router.addRoute('home', (state) => {
         `)
         render.availableTasks()
     }
+}
+
+router.addRoute('task', (state) => {
+    const { params: { id } } = state;
+    if (floGlobals.isSubAdmin) {
+        renderElem(getRef('app_body'), html`
+            <article id="task">
+                ${header()}
+                <section class="grid gap-1">
+                    <a href="#/home" class="button button--outlined margin-right-auto">Back</a>
+                    <h2>Applications</h2>
+                    <ul id="task_applications_list" class="grid"></ul>
+                </section>
+            </article>
+        `)
+        const applications = [...floGlobals.applications[id]].map(address => {
+            return html`    
+                <li class="flex">
+                    <sm-copy value=${address}>${address}</sm-copy>
+                    <button class="button button--outlined" onclick=${() => { }}>View</button>
+                </li>
+            `
+        })
+        renderElem(getRef('task_applications_list'), html`${applications}`)
+    } else if (!floGlobals.isAdmin) {
+    }
 })
 
 router.addRoute('profile', (state) => {
+    const { } = state;
+    let name = email = college = course = whatsappNumber = '';
+    if (floGlobals.userProfile) {
+        ({ name, email, college, course, whatsappNumber }) = JSON.parse(floDapps.user.decipher(floGlobals.userProfile));
+    }
     renderElem(getRef('app_body'), html`
         <article id="profile">
             ${header()}
-            <section class="grid gap-1">
-                <h2>Create profile</h2>
-                <sm-form>
-                    <sm-input placeholder="Name" maxlength="30" required></sm-input>
-                    <sm-input placeholder="Email" type="email" maxlength="40" required></sm-input>
-                    <sm-input placeholder="WhatsApp number" type="tel" maxlength="10" required></sm-input>
-                    <sm-input placeholder="College" maxlength="50" required></sm-input>
-                    <sm-input placeholder="Course" maxlength="30" required></sm-input>
-                    <button class="button button--primary" type="submit">Create</button>
+            <section class="flex gap-2 flex-wrap">
+                <div id="profile__header" class="flex flex-direction-column">
+                    <h4>Tell us about</h4>
+                    <h1>yourself</h1>
+                </div>
+                <sm-form id="profile__form">
+                    <div class="flex flex-direction-column">
+                        <label class="label" for="profile__name">Name</label>
+                        <sm-input id="profile__name" value=${name} error-text="Please enter your name" maxlength="30" required></sm-input>
+                    </div>
+                    <div class="flex flex-direction-column">
+                        <label class="label" for="profile__email">Email</label>
+                        <sm-input id="profile__email" value=${email} type="email" error-text="Please enter your email" maxlength="40" required></sm-input>
+                    </div>
+                    <div class="flex flex-direction-column">
+                        <label class="label" for="profile__whatsapp">WhatsApp number</label>
+                        <sm-input id="profile__whatsapp_number" value=${whatsappNumber} minlength="10" maxlength="13" error-text="Please enter your whatsapp number" type="number" maxlength="10" required></sm-input>
+                    </div>
+                    <div class="flex flex-direction-column">
+                        <label class="label" for="profile__college">College</label>
+                        <sm-input id="profile__college" value=${college} error-text="Please enter your college name" maxlength="50" required></sm-input>
+                    </div>
+                    <div class="flex flex-direction-column">
+                        <label class="label" for="profile__course">Course</label>
+                        <sm-input id="profile__course" value=${course} error-text="Please enter your course" maxlength="30" required></sm-input>
+                    </div>
+                    <div class="multi-state-button">
+                        <button id="profile__save" class="button button--primary" type="submit" onclick=${saveProfile}>
+                            ${floGlobals.userProfile ? 'Update' : 'Save'}
+                        </button>
+                    </div>
                 </sm-form>
             </section>   
         </article>
@@ -1078,19 +1167,33 @@ window.addEventListener("load", () => {
                 promises.push(floCloudAPI.requestGeneralData('taskApplications'))
                 await Promise.all(promises)
                 const taskApplications = floDapps.getNextGeneralData('taskApplications', '0');
+                floGlobals.applications = {}
+                for (const application in taskApplications) {
+                    const { message: { taskID }, senderID } = taskApplications[application];
+                    if (!floGlobals.applications[taskID])
+                        floGlobals.applications[taskID] = new Set()
+                    floGlobals.applications[taskID].add(senderID)
+                }
             } else if (floGlobals.isAdmin) {
 
             } else {
                 floGlobals.applications = new Set()
-                // fetch user's kyc requests
-                await floCloudAPI.requestGeneralData('taskApplications', {
-                    senderID: [floGlobals.myFloID, floGlobals.myBtcID],
-                })
+                const promises = [
+                    floCloudAPI.requestGeneralData('taskApplications', {
+                        senderID: [floGlobals.myFloID, floGlobals.myBtcID],
+                    }),
+                    floCloudAPI.requestGeneralData('userProfile', {
+                        senderID: [floGlobals.myFloID, floGlobals.myBtcID],
+                    })
+                ]
+                await Promise.all(promises)
                 const taskApplications = floDapps.getNextGeneralData('taskApplications', '0');
                 for (const application in taskApplications) {
                     const { message: { taskID } } = taskApplications[application];
                     floGlobals.applications.add(taskID)
                 }
+                const userProfile = floDapps.getNextGeneralData('userProfile', '0');
+                floGlobals.userProfile = Object.values(userProfile).at(-1)?.message.encryptedData;
             }
             if (['#/landing', '#/sign_in', '#/sign_up'].includes(window.location.hash)) {
                 history.replaceState(null, null, '#/home')

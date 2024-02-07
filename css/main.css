@@ -92,15 +92,15 @@ a:focus-visible {
 }
 
 h1 {
-  font-size: 1.5rem;
+  font-size: 2.5rem;
 }
 
 h2 {
-  font-size: 1.3rem;
+  font-size: 1.5rem;
 }
 
 h3 {
-  font-size: 1.1rem;
+  font-size: 1.2rem;
 }
 
 h4 {
@@ -439,6 +439,10 @@ ol {
   margin-left: auto;
 }
 
+.justify-items-center {
+  justify-items: center;
+}
+
 .align-self-center {
   align-self: center;
 }
@@ -479,7 +483,7 @@ ol {
   font-size: 0.9rem;
   color: rgba(var(--text-color), 0.8);
   font-weight: 500;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.3rem;
 }
 
 .button--primary .ripple,
@@ -825,11 +829,11 @@ ol {
   grid-area: task-actions;
 }
 
-#profile {
-  text-align: center;
+#profile__header h1,
+#profile__header h4 {
+  line-height: 0.7;
 }
 #profile sm-form {
-  margin: auto;
   width: min(32rem, 100%);
 }
 
@@ -851,10 +855,14 @@ ol {
   .task-card {
     grid-template-areas: "task-title task-time" "task-description task-description" "task-requisites task-requisites" "task-actions task-actions";
   }
+  #profile__header {
+    padding: 1rem 0;
+    margin-top: 10vh;
+  }
 }
 @media screen and (min-width: 40rem) {
   h1 {
-    font-size: 3rem;
+    font-size: 4rem;
   }
   h2 {
     font-size: 2rem;
@@ -923,6 +931,11 @@ ol {
   }
   #task_popup {
     --width: 36rem;
+  }
+  #profile section {
+    gap: 4rem;
+    justify-content: center;
+    align-items: center;
   }
 }
 @media (any-hover: hover) {
