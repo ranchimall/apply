@@ -760,7 +760,7 @@ const render = {
                 <h4>${title}</h4>
                 <sl-relative-time date=${date}></sl-relative-time>
                 <p>${description}</p>
-                <ul class="flex gap-0-5 flex-wrap">
+                <ul class="flex gap-0-3 flex-wrap">
                     <li>${floGlobals.taskCategories[category]}</li>
                     ${deadline ? html`<li>Complete <sl-relative-time date=${deadline}></sl-relative-time></li>` : ''}
                 </ul>
@@ -770,11 +770,19 @@ const render = {
             </li>
         `
     },
-    availableTasks(target = 'available_tasks_list') {
+    availableTasks(options = {}) {
+        const { type } = options
         if ((floGlobals.appObjects?.rmInterns.tasks || []).length === 0)
-            return renderElem(getRef(target), html`<p>No tasks available</p>`);
-        const tasksList = floGlobals.appObjects.rmInterns.tasks.map(render.task);
-        renderElem(getRef(target), html`${tasksList}`)
+            return renderElem(getRef('available_tasks_list'), html`<p>No tasks available</p>`);
+        let tasksList = floGlobals.appObjects.rmInterns.tasks;
+        if (type) {
+            if (type === 'applications')
+                tasksList = tasksList.filter(task => floGlobals.applications.has(task.id))
+            else if (type === 'available')
+                tasksList = tasksList.filter(task => !floGlobals.applications.has(task.id))
+        }
+        tasksList = tasksList.map(render.task);
+        renderElem(getRef('available_tasks_list'), html`${tasksList}`)
     }
 }
 
@@ -933,10 +941,10 @@ router.addRoute('', renderHome)
 router.addRoute('home', renderHome)
 
 function renderHome(state) {
-    const { } = state;
     if (floGlobals.isAdmin) {
 
     } else if (floGlobals.isSubAdmin) {
+        const { } = state;
         renderElem(getRef('app_body'), html`
             <article id="home">
                 ${header()}
@@ -957,6 +965,7 @@ function renderHome(state) {
         getRef('task_popup__title').textContent = 'Add Task';
         render.availableTasks()
     } else {
+        const { params: { view = floGlobals.applications?.size ? 'applications' : 'available' } } = state;
         if (floGlobals.applyingForTask) {
             applyToTask(floGlobals.applyingForTask)
             floGlobals.applyingForTask = null;
@@ -967,7 +976,14 @@ function renderHome(state) {
                     <section class="grid gap-1">
                         <h2>Home</h2>
                         <div class="flex flex-direction-column gap-1-5">
-                            <h4>Available</h4>
+                            ${floGlobals.applications?.size > 0 ? html`
+                                <sm-chips class="margin-right-auto" onchange=${handleViewChange}>
+                                    <sm-chip value="applications" ?selected=${view === 'applications'}>${floGlobals.applications.size} applications</sm-chip>
+                                    <sm-chip value="available" ?selected=${view === 'available'}>${floGlobals.appObjects.rmInterns.tasks.length - floGlobals.applications.size} Available</sm-chip>
+                                </sm-chips>
+                            ` : html`
+                                <h4>Available</h4>
+                            `}
                             <ul id="available_tasks_list" class="grid">
                                 <sm-spinner></sm-spinner>
                             </ul>
@@ -975,9 +991,12 @@ function renderHome(state) {
                     </section>
                 </article>
             `)
-            render.availableTasks()
+            render.availableTasks({ type: view })
         }
     }
+}
+function handleViewChange(e) {
+    location.hash = `#/home?view=${e.target.value}`
 }
 
 router.addRoute('task', (state) => {
@@ -1203,7 +1222,9 @@ window.addEventListener("load", () => {
                 const taskApplications = floDapps.getNextGeneralData('taskApplications', '0');
                 for (const application in taskApplications) {
                     const { message: { taskID } } = taskApplications[application];
-                    floGlobals.applications.add(taskID)
+                    if ((floGlobals.appObjects.rmInterns.tasks || []).some(task => task.id === taskID)) {
+                        floGlobals.applications.add(taskID)
+                    }
                 }
                 const userProfile = floDapps.getNextGeneralData('userProfile', '0');
                 floGlobals.userProfile = Object.values(userProfile).at(-1)?.message.encryptedData;
