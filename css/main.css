@@ -834,7 +834,7 @@ ol {
   text-align: center;
   background-color: rgba(var(--text-color), 0.06);
   padding: 1rem;
-  border-radius: 5rem;
+  border-radius: 40%;
   cursor: pointer;
   font-weight: 500;
   transition: background-color 0.3s, box-shadow 0.3s;
@@ -961,6 +961,9 @@ ol {
   }
   #landing #relative_tasks > div:first-of-type {
     padding: 3rem 0;
+  }
+  #category_selection ul {
+    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
   }
   #emblem {
     display: none;
