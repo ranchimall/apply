@@ -716,7 +716,6 @@ async function deleteTask(id) {
         danger: true
     })
     if (!confirmation) return;
-    console
     const taskIndex = floGlobals.appObjects.rmInterns.tasks.findIndex(task => task.id === id);
     if (taskIndex < 0) return notify('Task not found', 'error');
     // in case of error, add the task back to the list
@@ -806,11 +805,22 @@ const header = () => {
     const isUserLoggedIn = page === 'loading' || floGlobals.isUserLoggedIn;
     return html`
         <header id="main_header" class="flex align-center gap-1">
-            <a href="#/">
+            <a href="#/" class="flex align-center gap-0-5" style="color: rgba(var(--text-color), 0.9);">
                 <svg id="main_logo" class="icon" viewBox="0 0 27.25 32"> <title>RanchiMall</title> <path d="M27.14,30.86c-.74-2.48-3-4.36-8.25-6.94a20,20,0,0,1-4.2-2.49,6,6,0,0,1-1.25-1.67,4,4,0,0,1,0-2.26c.37-1.08.79-1.57,3.89-4.55a11.66,11.66,0,0,0,3.34-4.67,6.54,6.54,0,0,0,.05-2.82C20,3.6,18.58,2,16.16.49c-.89-.56-1.29-.64-1.3-.24a3,3,0,0,1-.3.72l-.3.55L13.42.94C13,.62,12.4.26,12.19.15c-.4-.2-.73-.18-.72.05a9.39,9.39,0,0,1-.61,1.33s-.14,0-.27-.13C8.76.09,8-.27,8,.23A11.73,11.73,0,0,1,6.76,2.6C4.81,5.87,2.83,7.49.77,7.49c-.89,0-.88,0-.61,1,.22.85.33.92,1.09.69A5.29,5.29,0,0,0,3,8.33c.23-.17.45-.29.49-.26a2,2,0,0,1,.22.63A1.31,1.31,0,0,0,4,9.34a5.62,5.62,0,0,0,2.27-.87L7,8l.13.55c.19.74.32.82,1,.65a7.06,7.06,0,0,0,3.46-2.47l.6-.71-.06.64c-.17,1.63-1.3,3.42-3.39,5.42L6.73,14c-3.21,3.06-3,5.59.6,8a46.77,46.77,0,0,0,4.6,2.41c.28.13,1,.52,1.59.87,3.31,2,4.95,3.92,4.95,5.93a2.49,2.49,0,0,0,.07.77h0c.09.09,0,.1.9-.14a2.61,2.61,0,0,0,.83-.32,3.69,3.69,0,0,0-.55-1.83A11.14,11.14,0,0,0,17,26.81a35.7,35.7,0,0,0-5.1-2.91C9.37,22.64,8.38,22,7.52,21.17a3.53,3.53,0,0,1-1.18-2.48c0-1.38.71-2.58,2.5-4.23,2.84-2.6,3.92-3.91,4.67-5.65a3.64,3.64,0,0,0,.42-2A3.37,3.37,0,0,0,13.61,5l-.32-.74.29-.48c.17-.27.37-.63.46-.8l.15-.3.44.64a5.92,5.92,0,0,1,1,2.81,5.86,5.86,0,0,1-.42,1.94c0,.12-.12.3-.15.4a9.49,9.49,0,0,1-.67,1.1,28,28,0,0,1-4,4.29C8.62,15.49,8.05,16.44,8,17.78a3.28,3.28,0,0,0,1.11,2.76c.95,1,2.07,1.74,5.25,3.32,3.64,1.82,5.22,2.9,6.41,4.38A4.78,4.78,0,0,1,21.94,31a3.21,3.21,0,0,0,.14.92,1.06,1.06,0,0,0,.43-.05l.83-.22.46-.12-.06-.46c-.21-1.53-1.62-3.25-3.94-4.8a37.57,37.57,0,0,0-5.22-2.82A13.36,13.36,0,0,1,11,21.19a3.36,3.36,0,0,1-.8-4.19c.41-.85.83-1.31,3.77-4.15,2.39-2.31,3.43-4.13,3.43-6a5.85,5.85,0,0,0-2.08-4.29c-.23-.21-.44-.43-.65-.65A2.5,2.5,0,0,1,15.27.69a10.6,10.6,0,0,1,2.91,2.78A4.16,4.16,0,0,1,19,6.16a4.91,4.91,0,0,1-.87,3c-.71,1.22-1.26,1.82-4.27,4.67a9.47,9.47,0,0,0-2.07,2.6,2.76,2.76,0,0,0-.33,1.54,2.76,2.76,0,0,0,.29,1.47c.57,1.21,2.23,2.55,4.65,3.73a32.41,32.41,0,0,1,5.82,3.24c2.16,1.6,3.2,3.16,3.2,4.8a1.94,1.94,0,0,0,.09.76,4.54,4.54,0,0,0,1.66-.4C27.29,31.42,27.29,31.37,27.14,30.86ZM6.1,7h0a3.77,3.77,0,0,1-1.46.45L4,7.51l.68-.83a25.09,25.09,0,0,0,3-4.82A12,12,0,0,1,8.28.76c.11-.12.77.32,1.53,1l.63.58-.57.84A10.34,10.34,0,0,1,6.1,7Zm5.71-1.78A9.77,9.77,0,0,1,9.24,7.18h0a5.25,5.25,0,0,1-1.17.28l-.58,0,.65-.78a21.29,21.29,0,0,0,2.1-3.12c.22-.41.42-.76.44-.79s.5.43.9,1.24L12,5ZM13.41,3a2.84,2.84,0,0,1-.45.64,11,11,0,0,1-.9-.91l-.84-.9.19-.45c.34-.79.39-.8,1-.31A9.4,9.4,0,0,1,13.8,2.33q-.18.34-.39.69Z"></path> </svg>
+                ${!['landing', 'loading'].includes(page) ? html`
+                    <div class="flex flex-direction-column hide-on-small" style="line-height: 1;">
+                        <span style="font-size: 0.8rem;">RanchiMall</span>
+                        <span style="font-weight: 500;">Selects</span>
+                    </div>
+                ` : ''}
             </a>
             <theme-toggle class="margin-left-auto"></theme-toggle>
-            ${isUserLoggedIn ? html`` : html`
+            ${isUserLoggedIn ? page !== 'loading' ? html`
+                <button id="user_profile_button" class="user-content button--small" onclick=${() => openPopup('profile_popup')}>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon margin-right-0-5" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000"> <path d="M0 0h24v24H0V0z" fill="none"></path> <path d="M12 5.9c1.16 0 2.1.94 2.1 2.1s-.94 2.1-2.1 2.1S9.9 9.16 9.9 8s.94-2.1 2.1-2.1m0 9c2.97 0 6.1 1.46 6.1 2.1v1.1H5.9V17c0-.64 3.13-2.1 6.1-2.1M12 4C9.79 4 8 5.79 8 8s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 9c-2.67 0-8 1.34-8 4v3h16v-3c0-2.66-5.33-4-8-4z"> </path> </svg>
+                    <div id="user_profile_id" class="overflow-ellipsis">${floGlobals.myFloID}</div>
+                </button>
+            `: '' : html`
                 <div class="flex gap-0-5">
                     ${page !== 'sign_up' ? html`<a class="button button--outlined" href="#/sign_up">Get Started</a>` : ''}
                     ${page !== 'sign_in' ? html`<a class="button button--primary" href="#/sign_in">Sign in</a>` : ''}
@@ -826,41 +836,91 @@ router.addRoute('loading', (state) => {
             <section class="grid justify-content-center">
                 <sm-spinner></sm-spinner>
                 <div class="grid gap-1 justify-items-center">
-                    <h4>Loading RanchiMall Internships</h4>
+                    <h4>Loading RanchiMall Selects</h4>
                     <button class="button button--colored" onclick=${signOut}>Reset</button>
                 </div>
             </section>
         </article>
     `);
 })
-router.addRoute('landing', (state) => {
-    const { page } = state;
-    renderElem(getRef('app_body'), html`
-        <article id="landing">
-            ${header()}
-            <section class="flex flex-wrap">
-                <div>
-                    <h1 class="grid">
-                        <span>
-                            Internships
-                        </span>
-                        <span>
-                            @ RanchiMall
-                        </span>
-                    </h1>
-                    <svg id="emblem" width="77" height="77" viewBox="0 0 77 77" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="38.4806" cy="29.7768" r="29.1831"/> <circle cx="38.4806" cy="47.2232" r="29.1831"/> <circle cx="47.2038" cy="38.5" r="29.1831" transform="rotate(90 47.2038 38.5)"/> <circle cx="29.7574" cy="38.5" r="29.1831" transform="rotate(90 29.7574 38.5)"/> </svg>
-                </div>
-                <div class="flex flex-direction-column gap-1-5" style="min-width: 12rem">
-                    <h4>Available</h4>
-                    <ul id="available_tasks_list" class="grid">
-                        <sm-spinner></sm-spinner>
-                    </ul>
-                </div>
-            </section>
-        </article>
-    `)
-    render.availableTasks()
+router.addRoute('landing', async (state) => {
+    try {
+        const { page } = state;
+        const interestedCategories = localStorage.getItem('interestedCategories') || '[]';
+        floGlobals.interestedCategories = new Set(JSON.parse(interestedCategories));
+        if (floGlobals.interestedCategories.size) {
+            await Promise.all(
+                Object.keys(floGlobals.taskCategories).map(category => floCloudAPI.requestObjectData(category))
+            )
+        }
+        renderElem(getRef('app_body'), html`
+            <article id="landing">
+                ${header()}
+                ${floGlobals.interestedCategories.size === 0 ? html`
+                    <section id="category_selection" class="grid justify-content-center">
+                        <div class="grid">
+                            <h1>
+                                <span>Welcome to</span> <br> RanchiMall Selects
+                            </h1>
+                            <p>
+                                Select the categories you are interested in <br> and we will show you the tasks available in those categories
+                            </p>
+                        </div>
+                        <ul id="category_list" class="grid gap-0-5">
+                            ${Object.keys(floGlobals.taskCategories).map((category, index) => html`
+                                <li class="flex align-center gap-0-5" style=${`--delay: ${index * 0.1}s`}>
+                                    <input type="checkbox" id=${category} onchange=${(e) => toggleCategory(e, category)}>
+                                    <label class="interactive" for=${category}>${floGlobals.taskCategories[category]}</label>
+                                </li>
+                            `)}
+                        </ul>
+                        <button class="button button--primary" onclick=${() => saveCategories()}>
+                            <span>Next</span>
+                            <svg class="icon" xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 0 24 24" width="24px" fill="#000000"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8-8-8z"/></svg>
+                        </button>
+                    </section>
+                ` : html`
+                    <section id="relative_tasks" class="flex flex-wrap">
+                        <div>
+                            <h1 class="grid">
+                                <span>
+                                    Internship
+                                </span>
+                                <span>
+                                    @ RanchiMall
+                                </span>
+                            </h1>
+                            <svg id="emblem" width="77" height="77" viewBox="0 0 77 77" fill="none" xmlns="http://www.w3.org/2000/svg"> <circle cx="38.4806" cy="29.7768" r="29.1831"/> <circle cx="38.4806" cy="47.2232" r="29.1831"/> <circle cx="47.2038" cy="38.5" r="29.1831" transform="rotate(90 47.2038 38.5)"/> <circle cx="29.7574" cy="38.5" r="29.1831" transform="rotate(90 29.7574 38.5)"/> </svg>
+                        </div>
+                        <div class="flex flex-direction-column gap-1-5" style="min-width: 12rem">
+                            <h4>Available</h4>
+                            <ul id="available_tasks_list" class="grid">
+                                <sm-spinner></sm-spinner>
+                            </ul>
+                        </div>
+                    </section>
+                `}
+            </article>
+        `)
+        if (floGlobals.interestedCategories.size > 0)
+            render.availableTasks()
+    } catch (err) {
+        notify(err, 'error')
+    }
 })
+
+function toggleCategory(e, category) {
+    if (e.target.checked) {
+        floGlobals.interestedCategories.add(category)
+    } else {
+        floGlobals.interestedCategories.delete(category)
+    }
+}
+
+function saveCategories() {
+    localStorage.setItem('interestedCategories', JSON.stringify([...floGlobals.interestedCategories]));
+    router.routeTo('landing');
+}
 
 function handleSignIn() {
     privKeyResolver(getRef('private_key_field').value.trim());
@@ -941,6 +1001,10 @@ router.addRoute('', renderHome)
 router.addRoute('home', renderHome)
 
 function renderHome(state) {
+    if (!floGlobals.isUserLoggedIn) {
+        router.routeTo('landing');
+        return;
+    }
     if (floGlobals.isAdmin) {
 
     } else if (floGlobals.isSubAdmin) {
@@ -978,8 +1042,8 @@ function renderHome(state) {
                         <div class="flex flex-direction-column gap-1-5">
                             ${floGlobals.applications?.size > 0 ? html`
                                 <sm-chips class="margin-right-auto" onchange=${handleViewChange}>
-                                    <sm-chip value="applications" ?selected=${view === 'applications'}>${floGlobals.applications.size} applications</sm-chip>
-                                    <sm-chip value="available" ?selected=${view === 'available'}>${floGlobals.appObjects.rmInterns.tasks.length - floGlobals.applications.size} Available</sm-chip>
+                                    <sm-chip value="applications" ?selected=${view === 'applications'}>Applied ${floGlobals.applications.size}</sm-chip>
+                                    <sm-chip value="available" ?selected=${view === 'available'}>Available ${floGlobals.appObjects.rmInterns.tasks.length - floGlobals.applications.size}</sm-chip>
                                 </sm-chips>
                             ` : html`
                                 <h4>Available</h4>
@@ -1165,15 +1229,20 @@ window.addEventListener("load", () => {
     });
     floDapps.setMidStartup(() =>
         new Promise((resolve, reject) => {
-            floCloudAPI.requestObjectData('rmInterns').then(() => {
-                if (['#/landing', '#/sign_in', '#/sign_up'].some(route => window.location.hash.includes(route))) {
-                    router.routeTo(window.location.hash);
-                }
-                resolve()
-            }).catch(err => {
-                console.error(err)
-                reject()
-            })
+            Promise.all([
+                floCloudAPI.requestObjectData('rmInterns'),
+                floCloudAPI.requestObjectData('c00'),
+                floCloudAPI.requestObjectData('c01'),
+            ])
+                .then(() => {
+                    if (['#/landing', '#/sign_in', '#/sign_up'].some(route => window.location.hash.includes(route))) {
+                        router.routeTo(window.location.hash);
+                    }
+                    resolve()
+                }).catch(err => {
+                    console.error(err)
+                    reject()
+                })
         })
     )
     floDapps.setCustomPrivKeyInput(getSignedIn)
@@ -1185,16 +1254,23 @@ window.addEventListener("load", () => {
         floGlobals.myBtcID = getBtcAddress(floGlobals.myFloID)
         floGlobals.isSubAdmin = floGlobals.subAdmins.includes(floGlobals.myFloID)
         floGlobals.isAdmin = floGlobals.myFloID === floGlobals.adminID
+        let showingFloID = true
+        // alternating between floID and btcID every 10 seconds
+        setInterval(() => {
+            getRef('user_profile_id').textContent = showingFloID ? floGlobals.myBtcID : floGlobals.myFloID
+            showingFloID = !showingFloID
+        }, 10000)
         try {
             if (floGlobals.isSubAdmin) {
                 const promises = []
-                // initialize intern app data structure
-                if (!floGlobals.appObjects.rmInterns) {
-                    console.log('rmInterns not found, resetting')
-                    floGlobals.appObjects.rmInterns = {
-                        tasks: [],
+                for (const category in floGlobals.taskCategories) {
+                    if (!floGlobals.appObjects[category]) {
+                        console.log('resetting', category)
+                        floGlobals.appObjects[category] = {
+                            tasks: [],
+                        }
+                        promises.push(floCloudAPI.resetObjectData(category))
                     }
-                    promises.push(floCloudAPI.resetObjectData('rmInterns'))
                 }
                 promises.push(floCloudAPI.requestGeneralData('taskApplications'))
                 await Promise.all(promises)
@@ -1248,3 +1324,10 @@ window.addEventListener("load", () => {
 // should we allow users to apply for multiple tasks?
 // Add icons to the task categories
 // handle applicants data securely (encrypted) and allow sub-admins to view them
+
+
+// make separate object data for each categories and show only interested tasks
+// ability to save data of interns which are promising beyond 7 days
+// ability to mark tasks which are delayed
+// have unified view for all tasks in subadmin view
+// add option to publish certificates from RIBC
