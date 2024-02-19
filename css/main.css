@@ -963,7 +963,7 @@ ol {
     padding: 3rem 0;
   }
   #category_selection ul {
-    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
   }
   #emblem {
     display: none;

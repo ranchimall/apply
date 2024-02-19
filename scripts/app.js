@@ -141,6 +141,12 @@ window.addEventListener('popstate', e => {
     }
 })
 //Function for displaying toast notifications. pass in error for mode param if you want to show an error.
+/**
+ * @param {string} message - Message to be displayed in the notification
+ * @param {string} mode - Mode of the notification. Can be 'success' or 'error' or ''
+ * @param {object} options - Options for the notification
+ * @param {boolean} options.pinned - If true, notification will not be dismissed automatically
+ */
 function notify(message, mode, options = {}) {
     let icon
     switch (mode) {
@@ -149,7 +155,8 @@ function notify(message, mode, options = {}) {
             break;
         case 'error':
             icon = `<svg class="icon icon--error" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2h2v-2h-2zm0-8v6h2V7h-2z"/></svg>`
-            options.pinned = true
+            if (!options.hasOwnProperty('timeout'))
+                options.pinned = true
             break;
     }
     if (mode === 'error') {
@@ -649,8 +656,6 @@ async function applyToTask(id) {
 }
 
 function editTask(id) {
-    const task = floGlobals.appObjects.rmInterns.tasks.find(task => task.id === id);
-    if (!task) return notify('Task not found', 'error')
     const { title, description, category, deadline } = task;
     getRef('task_popup__title_input').value = title;
     getRef('task_popup__description').value = description;
@@ -666,10 +671,10 @@ async function saveTask() {
     })
     if (!confirmation) return;
     // save task
-    const id = getRef('task_popup').dataset.taskId || Math.random().toString(36).substr(2, 9);
     const title = getRef('task_popup__title_input').value;
     const description = getRef('task_popup__description').value;
     const category = getRef('task_popup__category').value;
+    const id = getRef('task_popup').dataset.taskId || category + '_' + Math.random().toString(36).substring(2, 9);
     const deadline = getRef('task_popup__deadline').value;
     const task = {
         id,
@@ -679,7 +684,7 @@ async function saveTask() {
         deadline,
         status: 'open'
     }
-    const foundTask = floGlobals.appObjects.rmInterns.tasks.find(task => task.id === id);
+    const foundTask = floGlobals.appObjects[category].tasks.find(task => task.id === id);
     if (foundTask) {
         let taskDetailsChanged = false;
         // edit task only if something has changed
@@ -693,10 +698,10 @@ async function saveTask() {
             return notify('Please update at least one detail to save the changes', 'error')
     } else {
         task.date = Date.now();
-        floGlobals.appObjects.rmInterns.tasks.unshift(task)
+        floGlobals.appObjects[category].tasks.unshift(task);
     }
     buttonLoader('task_popup__submit', true)
-    floCloudAPI.updateObjectData('rmInterns')
+    floCloudAPI.updateObjectData(category)
         .then(response => {
             notify('Task saved successfully', 'success')
             render.availableTasks();
@@ -716,18 +721,19 @@ async function deleteTask(id) {
         danger: true
     })
     if (!confirmation) return;
-    const taskIndex = floGlobals.appObjects.rmInterns.tasks.findIndex(task => task.id === id);
+    const [category] = id.split('_');
+    const taskIndex = floGlobals.appObjects[category].tasks.findIndex(task => task.id === id);
     if (taskIndex < 0) return notify('Task not found', 'error');
     // in case of error, add the task back to the list
-    const [cloneOfTaskToBeDeleted] = floGlobals.appObjects.rmInterns.tasks.splice(taskIndex, 1);
-    floCloudAPI.updateObjectData('rmInterns')
+    const [cloneOfTaskToBeDeleted] = floGlobals.appObjects[category].tasks.splice(taskIndex, 1);
+    floCloudAPI.updateObjectData(category)
         .then(response => {
             notify('Task deleted successfully', 'success')
         })
         .catch(e => {
             notify('An error occurred while deleting the task', 'error');
             // add the task back to the list
-            floGlobals.appObjects.rmInterns.tasks.splice(taskIndex, 0, cloneOfTaskToBeDeleted);
+            floGlobals.appObjects[category].tasks.splice(taskIndex, 0, cloneOfTaskToBeDeleted);
         }).finally(() => {
             closePopup()
             render.availableTasks();
@@ -770,18 +776,21 @@ const render = {
         `
     },
     availableTasks(options = {}) {
-        const { type } = options
-        if ((floGlobals.appObjects?.rmInterns.tasks || []).length === 0)
+        const { type } = options;
+        let availableTasks = [];
+        [...floGlobals.interestedCategories || Object.keys(floGlobals.taskCategories)].forEach(category => {
+            availableTasks.push(...floGlobals.appObjects[category].tasks)
+        })
+        if (availableTasks.length === 0)
             return renderElem(getRef('available_tasks_list'), html`<p>No tasks available</p>`);
-        let tasksList = floGlobals.appObjects.rmInterns.tasks;
         if (type) {
             if (type === 'applications')
-                tasksList = tasksList.filter(task => floGlobals.applications.has(task.id))
+                availableTasks = availableTasks.filter(task => floGlobals.applications.has(task.id))
             else if (type === 'available')
-                tasksList = tasksList.filter(task => !floGlobals.applications.has(task.id))
+                availableTasks = availableTasks.filter(task => !floGlobals.applications.has(task.id))
         }
-        tasksList = tasksList.map(render.task);
-        renderElem(getRef('available_tasks_list'), html`${tasksList}`)
+        availableTasks = availableTasks.map(render.task);
+        renderElem(getRef('available_tasks_list'), html`${availableTasks}`)
     }
 }
 
@@ -918,6 +927,10 @@ function toggleCategory(e, category) {
 }
 
 function saveCategories() {
+    if (floGlobals.interestedCategories.size === 0)
+        return notify('Please select at least one category', 'error', {
+            timeout: 5000
+        })
     localStorage.setItem('interestedCategories', JSON.stringify([...floGlobals.interestedCategories]));
     router.routeTo('landing');
 }
@@ -1093,7 +1106,12 @@ router.addRoute('profile', (state) => {
     const { } = state;
     let name = email = college = course = whatsappNumber = '';
     if (floGlobals.userProfile) {
-        ({ name, email, college, course, whatsappNumber }) = JSON.parse(floDapps.user.decipher(floGlobals.userProfile));
+        const userDetails = JSON.parse(floDapps.user.decipher(floGlobals.userProfile));
+        name = userDetails.name;
+        email = userDetails.email;
+        college = userDetails.college;
+        course = userDetails.course;
+        whatsappNumber = userDetails.whatsappNumber;
     }
     renderElem(getRef('app_body'), html`
         <article id="profile">
@@ -1229,11 +1247,7 @@ window.addEventListener("load", () => {
     });
     floDapps.setMidStartup(() =>
         new Promise((resolve, reject) => {
-            Promise.all([
-                floCloudAPI.requestObjectData('rmInterns'),
-                floCloudAPI.requestObjectData('c00'),
-                floCloudAPI.requestObjectData('c01'),
-            ])
+            floCloudAPI.requestObjectData('rmInterns')
                 .then(() => {
                     if (['#/landing', '#/sign_in', '#/sign_up'].some(route => window.location.hash.includes(route))) {
                         router.routeTo(window.location.hash);
@@ -1263,6 +1277,7 @@ window.addEventListener("load", () => {
         try {
             if (floGlobals.isSubAdmin) {
                 const promises = []
+                await Promise.all(Object.keys(floGlobals.taskCategories).map(category => floCloudAPI.requestObjectData(category)))
                 for (const category in floGlobals.taskCategories) {
                     if (!floGlobals.appObjects[category]) {
                         console.log('resetting', category)
@@ -1276,12 +1291,18 @@ window.addEventListener("load", () => {
                 await Promise.all(promises)
                 const taskApplications = floDapps.getNextGeneralData('taskApplications', '0');
                 floGlobals.applications = {}
+                floGlobals.allAvailableTasks = new Set();
+                for (const category in floGlobals.taskCategories) {
+                    const tasks = floGlobals.appObjects[category].tasks || [];
+                    tasks.forEach(task => floGlobals.allAvailableTasks.add(task.id))
+                }
                 for (const application in taskApplications) {
                     const { message: { taskID }, senderID } = taskApplications[application];
                     if (!floGlobals.applications[taskID])
                         floGlobals.applications[taskID] = new Set()
                     floGlobals.applications[taskID].add(senderID)
                 }
+
             } else if (floGlobals.isAdmin) {
 
             } else {
@@ -1296,11 +1317,16 @@ window.addEventListener("load", () => {
                 ]
                 await Promise.all(promises)
                 const taskApplications = floDapps.getNextGeneralData('taskApplications', '0');
+                floGlobals.allAvailableTasks = new Set();
+                for (const category in floGlobals.taskCategories) {
+                    const tasks = floGlobals.appObjects[category].tasks || [];
+                    tasks.forEach(task => floGlobals.allAvailableTasks.add(task.id))
+                }
                 for (const application in taskApplications) {
                     const { message: { taskID } } = taskApplications[application];
-                    if ((floGlobals.appObjects.rmInterns.tasks || []).some(task => task.id === taskID)) {
+                    // if the task is still available, add it to the applications
+                    if (floGlobals.allAvailableTasks.has(taskID))
                         floGlobals.applications.add(taskID)
-                    }
                 }
                 const userProfile = floDapps.getNextGeneralData('userProfile', '0');
                 floGlobals.userProfile = Object.values(userProfile).at(-1)?.message.encryptedData;
