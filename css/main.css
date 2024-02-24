@@ -736,7 +736,7 @@ ol {
 
 #app_body {
   display: grid;
-  grid-template-columns: 1rem [main-margin-start] 1fr [main-margin-end] 1rem;
+  grid-template-columns: 1rem [main-margin-start] minmax(0, 1fr) [main-margin-end] 1rem;
   height: 100%;
 }
 #app_body > * {
@@ -752,6 +752,10 @@ ol {
   background-color: rgba(var(--background-color), 0.7);
   -webkit-backdrop-filter: blur(1rem);
           backdrop-filter: blur(1rem);
+}
+#main_header:has(button) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
 }
 #main_header #main_logo {
   height: 2.5rem;
@@ -944,14 +948,14 @@ ol {
   --background: rgba(var(--text-color), 0.06) ;
 }
 
-#user_profile_button {
+#user_popup_button {
   background-color: rgba(var(--text-color), 0.06);
   border-radius: 2rem;
   font-size: 0.8rem;
   padding: 0.6rem 0.8rem;
   color: currentColor;
 }
-#user_profile_button .icon {
+#user_popup_button .icon {
   fill: currentColor;
 }
 
@@ -974,6 +978,9 @@ ol {
   #profile__header {
     padding: 1rem 0;
     margin-top: 10vh;
+  }
+  #user_popup_button {
+    grid-area: 1/2/2/3;
   }
   .hide-on-small {
     display: none;
@@ -1006,7 +1013,7 @@ ol {
     padding: 1rem 1.5rem 0 1.5rem;
   }
   #app_body {
-    grid-template-columns: 4vw [main-margin-start] 4vw [inner-margin-start] 1fr [inner-margin-end] 4vw [main-margin-end] 4vw;
+    grid-template-columns: 4vw [main-margin-start] 4vw [inner-margin-start] minmax(0, 1fr) [inner-margin-end] 4vw [main-margin-end] 4vw;
   }
   #main_header {
     padding: 2rem 0;

@@ -764,7 +764,7 @@ ol {
 
 #app_body {
     display: grid;
-    grid-template-columns: 1rem [main-margin-start] 1fr [main-margin-end] 1rem;
+    grid-template-columns: 1rem [main-margin-start] minmax(0, 1fr) [main-margin-end] 1rem;
     height: 100%;
 
     &>* {
@@ -779,6 +779,11 @@ ol {
     z-index: 10;
     background-color: rgba(var(--background-color), 0.7);
     backdrop-filter: blur(1rem);
+
+    &:has(button) {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+    }
 
     #main_logo {
         height: 2.5rem;
@@ -1012,7 +1017,7 @@ ol {
     }
 }
 
-#user_profile_button {
+#user_popup_button {
     background-color: rgba(var(--text-color), 0.06);
     border-radius: 2rem;
     font-size: 0.8rem;
@@ -1056,6 +1061,10 @@ ol {
         }
     }
 
+    #user_popup_button {
+        grid-area: 1/2/2/3;
+    }
+
     .hide-on-small {
         display: none;
     }
@@ -1096,7 +1105,7 @@ ol {
     }
 
     #app_body {
-        grid-template-columns: 4vw [main-margin-start] 4vw [inner-margin-start] 1fr [inner-margin-end] 4vw [main-margin-end] 4vw;
+        grid-template-columns: 4vw [main-margin-start] 4vw [inner-margin-start] minmax(0, 1fr) [inner-margin-end] 4vw [main-margin-end] 4vw;
     }
 
     #main_header {
