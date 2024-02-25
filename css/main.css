@@ -932,6 +932,21 @@ ol {
   grid-area: task-actions;
 }
 
+.update-card {
+  border-radius: 0.5rem;
+  padding: max(1rem, 1.5vw);
+  background-color: rgba(var(--text-color), 0.06);
+}
+.update-card__sender, .update-card__time {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(var(--text-color), 0.8);
+}
+.update-card__message {
+  margin-top: 0.5rem;
+  white-space: pre-line;
+}
+
 #profile__header h1,
 #profile__header h4 {
   line-height: 0.7;
@@ -1052,10 +1067,14 @@ ol {
   #landing #relative_tasks > div:last-of-type {
     margin-top: 3rem;
   }
-  #home > section {
+  #home > section,
+#task > section {
     padding: 0 8vw;
   }
   #task_popup {
+    --width: 36rem;
+  }
+  #send_update_popup {
     --width: 36rem;
   }
   #profile section {
